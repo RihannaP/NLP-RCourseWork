@@ -1,7 +1,5 @@
-#NLP assessment template 2026
 
-# Note: The template functions here and the dataframe format for structuring your solution is a suggested but not mandatory approach. You can use a different approach if you like, as long as you clearly answer the questions and communicate your answers clearly.
-
+import pandas as pd
 import nltk
 import spacy
 from pathlib import Path
@@ -43,7 +41,22 @@ def count_syl(word, d):
 def read_novels(path=Path.cwd() / "texts" / "novels"):
     """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
     author, and year"""
-    pass
+    rows = []
+    for file in Path(path).glob("*.txt"):
+        # filenames are "Title-Author-Year.txt". The title can have hyphens because of some of them divided by that
+        # so I am taking year and author from the END and re-join whatever is left as the title.
+        parts = file.stem.split("-")
+        year = int(parts[-1])
+        author = parts[-2]
+        title = "-".join(parts[:-2]).replace("_", " ")
+        text = file.read_text(encoding="utf-8", errors="ignore")
+        rows.append({"text": text, "title": title, "author": author, "year": year})
+
+    df = pd.DataFrame(rows, columns=["text", "title", "author", "year"])
+    # (a)(ii): sort by year and reset the index
+    df = df.sort_values("year").reset_index(drop=True)
+    return df
+    
 
 
 def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
@@ -82,10 +95,12 @@ if __name__ == "__main__":
     """
     uncomment the following lines to run the functions once you have completed them
     """
-    # path = Path.cwd() / "texts" / "novels"
-    # print(path)
-    # df = read_novels(path) # this line will fail until you have completed the read_novels function above.
-    # print(df.head())
+    path = Path.cwd() / "texts" / "novels"
+    print(path)
+    df = read_novels(path) # this line will fail until you have completed the read_novels function above.
+    print(df.head())
+    print(df[["title", "author", "year"]])
+    print("shape:", df.shape)
     # nltk.download("cmudict")
     # parse(df)
     # print(df.head())
