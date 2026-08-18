@@ -3,6 +3,7 @@ import pandas as pd
 import nltk
 import spacy
 from pathlib import Path
+import string
 
 
 nlp = spacy.load("en_core_web_sm")
@@ -67,7 +68,14 @@ def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
 
 def nltk_ttr(text):
     """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
-    pass
+    # lower-case first so types are counted case-insensitively ("The" == "the").
+    tokens = nltk.word_tokenize(text.lower())
+    # Drop tokens that are purely punctuation (e.g. "," ";" "--") so they aren't counted.
+    tokens = [t for t in tokens if not all(ch in string.punctuation for ch in t)]
+    if not tokens:
+        return 0.0
+    # types = unique tokens, tokens = all tokens
+    return len(set(tokens)) / len(tokens)
 
 
 def get_ttrs(df):
@@ -92,16 +100,21 @@ def get_fks(df):
 
 
 if __name__ == "__main__":
-    """
-    uncomment the following lines to run the functions once you have completed them
-    """
+    
+    nltk.download("cmudict")
+    nltk.download("punkt")
+    nltk.download("punkt_tab")
     path = Path.cwd() / "texts" / "novels"
     print(path)
     df = read_novels(path) # this line will fail until you have completed the read_novels function above.
     print(df.head())
     print(df[["title", "author", "year"]])
     print("shape:", df.shape)
-    # nltk.download("cmudict")
+    
+
+    print("\n--- Type-Token Ratio ---")
+    for title, ttr in get_ttrs(df).items():
+        print(f"{ttr:.4f}  {title}")
     # parse(df)
     # print(df.head())
     # print(get_ttrs(df))
