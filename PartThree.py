@@ -26,6 +26,7 @@ def get_split(df):
     train, test = train_test_split(df, test_size=0.2, random_state=26)
     return train, test
 
+# ----3(b)zero-shot-----
 ZERO_SHOT_SYSTEM = (
     "You are a political analyst. You are given an excerpt from a UK parliamentary "
     "speech. Classify which party the speaker belongs to. "
@@ -58,7 +59,7 @@ def classify_zero_shot(speech):
         options={"temperature": 0, "num_predict": 10}, 
     )
     raw = resp["message"]["content"]
-    print("RAW ->", repr(raw))       # see exactly what the model says
+    # print("RAW ->", repr(raw))       # see exactly what the model says
     return parse_label(raw)
 
 
@@ -70,6 +71,39 @@ def evaluate(test, predict_fn, label):
     print("macro-F1:", f1_score(y_true, preds, average="macro", zero_division=0))
     print(classification_report(y_true, preds, zero_division=0))
     return preds
+
+
+# ----3(c)few-shot-----
+
+FEW_SHOT_PER_CLASS = 2     # labelled examples per party
+EXAMPLE_CHARS = 600        # truncate example speeches to keep prompt compact
+
+
+def build_few_shot_prompt(train, per_class=FEW_SHOT_PER_CLASS):
+    """Build the few-shot system prompt: the zero-shot instruction plus a balanced
+    set of labelled training examples, one speech per party, so the model sees an
+    example of every label (including the rare SNP/Lib Dem). Excerpts are truncated."""
+
+    blocks = [ZERO_SHOT_SYSTEM, "\nHere are some labelled examples:"]
+    for party in PARTIES:
+        for _, row in train[train["party"] == party].head(per_class).iterrows():
+            excerpt = row["speech"][:EXAMPLE_CHARS]
+            blocks.append(f"\nSpeech:\n{excerpt}\nParty: {party}")
+    return "\n".join(blocks)
+
+
+def classify_few_shot(speech, few_shot_system):
+    """Classify one speech using the few-shot prompt."""
+    resp = ollama.chat(
+        model=MODEL,
+        messages=[
+            {"role": "system", "content": few_shot_system},
+            {"role": "user", "content": f"Speech:\n{speech}\n\nParty:"},
+        ],
+        options={"temperature": 0, "num_predict": 10},
+    )
+    return parse_label(resp["message"]["content"])
+
 
 
 ANSWER_3A = """
@@ -111,3 +145,9 @@ if __name__ == "__main__":
     print("---- exact zero-shot prompt (system message) ----")
     print(ZERO_SHOT_SYSTEM)
     evaluate(test, classify_zero_shot, "Zero-shot (phi4-mini)")
+
+    print("\n########## 3(c): FEW-SHOT ##########")
+    few_shot_system = build_few_shot_prompt(train)
+    print("---- exact few-shot prompt (system message) ----")
+    print(few_shot_system)
+    evaluate(test, lambda s: classify_few_shot(s, few_shot_system), "Few-shot (phi4-mini)")
