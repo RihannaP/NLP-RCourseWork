@@ -1,0 +1,137 @@
+[nltk_data] Downloading package cmudict to /Users/riri/nltk_data...
+[nltk_data]   Package cmudict is already up-to-date!
+[nltk_data] Downloading package punkt to /Users/riri/nltk_data...
+[nltk_data]   Package punkt is already up-to-date!
+[nltk_data] Downloading package punkt_tab to /Users/riri/nltk_data...
+[nltk_data]   Package punkt_tab is already up-to-date!
+/Users/riri/Documents/BBK/Natural Language Processing/Coursework/NLP-RCourseWork/texts/novels
+                       title    author  year
+0      Sense and Sensibility    Austen  1811
+1            North and South   Gaskell  1855
+2       A Tale of Two Cities   Dickens  1858
+3                    Erewhon    Butler  1872
+4               The American     James  1877
+5                Dorian Gray     Wilde  1890
+6   Tess of the DUrbervilles     Hardy  1891
+7          The Secret Garden   Burnett  1911
+8     Portrait of the Artist     Joyce  1916
+9             The Black Moth     Heyer  1926
+10                   Orlando     Woolf  1928
+11            Blood Meridian  McCarthy  1930
+shape: (12, 4)
+
+--- Type-Token Ratio ---
+0.0543  Sense and Sensibility
+0.0563  North and South
+0.0701  A Tale of Two Cities
+0.0931  Erewhon
+0.0634  The American
+0.0883  Dorian Gray
+0.0832  Tess of the DUrbervilles
+0.0595  The Secret Garden
+0.1048  Portrait of the Artist
+0.0824  The Black Moth
+0.1165  Orlando
+0.0856  Blood Meridian
+
+--- Flesch-Kincaid Grade Level ---
+ 11.28  Sense and Sensibility
+  7.20  North and South
+  7.67  A Tale of Two Cities
+ 14.60  Erewhon
+  6.40  The American
+  5.17  Dorian Gray
+  8.00  Tess of the DUrbervilles
+  4.85  The Secret Garden
+  6.68  Portrait of the Artist
+  4.44  The Black Moth
+  9.76  Orlando
+  5.68  Blood Meridian
+
+--- Parsed dataframe ---
+columns: ['text', 'title', 'author', 'year', 'parsed']
+                   title  year
+0  Sense and Sensibility  1811
+1        North and South  1855
+2   A Tale of Two Cities  1858
+3                Erewhon  1872
+4           The American  1877
+[('\n', 'SPACE', 'dep'), ('CHAPTER', 'PROPN', 'npadvmod'), ('1', 'NUM', 'nummod'), ('\n\n', 'SPACE', 'dep'), ('The', 'DET', 'det'), ('family', 'NOUN', 'nsubjpass'), ('of', 'ADP', 'prep'), ('Dashwood', 'PROPN', 'pobj'), ('had', 'AUX', 'aux'), ('long', 'ADV', 'advmod'), ('been', 'AUX', 'auxpass'), ('settled', 'VERB', 'ROOT'), ('in', 'ADP', 'prep'), ('Sussex', 'PROPN', 'pobj'), ('.', 'PUNCT', 'punct')]
+
+--- (e)(i) Ten most common direct objects ---
+Sense and Sensibility
+[('she', 398), ('it', 380), ('he', 285), ('you', 214), ('what', 197), ('they', 192), ('i', 175), ('which', 114), ('herself', 94), ('nothing', 79)]
+North and South
+[('it', 556), ('he', 483), ('she', 455), ('i', 354), ('what', 352), ('you', 277), ('they', 187), ('which', 170), ('herself', 146), ('margaret', 120)]
+A Tale of Two Cities
+[('it', 451), ('he', 411), ('you', 240), ('i', 233), ('she', 197), ('they', 167), ('what', 153), ('himself', 132), ('hand', 125), ('that', 111)]
+Erewhon
+[('it', 230), ('i', 222), ('they', 158), ('which', 151), ('he', 104), ('what', 101), ('that', 81), ('she', 48), ('myself', 47), ('we', 41)]
+The American
+[('it', 583), ('you', 479), ('i', 395), ('he', 370), ('she', 304), ('what', 292), ('that', 182), ('they', 149), ('hand', 144), ('something', 114)]
+Dorian Gray
+[('it', 300), ('i', 256), ('he', 252), ('you', 188), ('that', 178), ('what', 166), ('they', 98), ('she', 92), ('thing', 68), ('something', 52)]
+Tess of the DUrbervilles
+[('she', 497), ('it', 425), ('he', 298), ('i', 248), ('you', 239), ('what', 185), ('they', 171), ('that', 128), ('which', 121), ('herself', 90)]
+The Secret Garden
+[('it', 368), ('he', 220), ('she', 168), ('what', 135), ('i', 111), ('thing', 95), ('they', 94), ('you', 89), ('that', 61), ('hand', 59)]
+Portrait of the Artist
+[('he', 295), ('it', 180), ('they', 103), ('what', 102), ('you', 91), ('i', 75), ('hand', 66), ('that', 57), ('which', 56), ('eye', 50)]
+The Black Moth
+[('he', 405), ('you', 359), ('it', 344), ('i', 341), ('she', 269), ('hand', 126), ('what', 116), ('that', 102), ('himself', 83), ('head', 73)]
+Orlando
+[('it', 192), ('she', 162), ('he', 149), ('they', 94), ('which', 85), ('what', 70), ('that', 46), ('himself', 41), ('herself', 41), ('we', 39)]
+Blood Meridian
+[('it', 415), ('he', 291), ('they', 290), ('horse', 164), ('what', 110), ('head', 105), ('man', 91), ('hand', 86), ('pistol', 72), ('one', 54)]
+
+--- (e)(ii) Verbs with object 'him' (by PMI) ---
+Sense and Sensibility
+[('esteem', 4.246176882187775), ('befall', 4.053531804245379), ('question', 3.8836068028030666), ('cast', 3.8836068028030666), ('dissuade', 3.8836068028030666), ('attract', 3.4685693035242227), ('stop', 3.4685693035242227), ('involve', 3.4685693035242227), ('interest', 3.1466412086368605), ('detain', 3.1466412086368605)]
+North and South
+[('inform', 4.480493234165127), ('fit', 4.480493234165127), ('thrill', 4.480493234165127), ('entreat', 4.480493234165127), ('precede', 3.743527639998921), ('drive', 3.3650160167451912), ('encourage', 3.1585651392777647), ('save', 2.895530733443971), ('treat', 2.895530733443971), ('vex', 2.895530733443971)]
+A Tale of Two Cities
+[('soothe', 4.030323125907413), ('caress', 4.030323125907413), ('eye', 3.445360625186256), ('remind', 3.445360625186256), ('encompass', 3.2933575317412065), ('identify', 3.2229682038498084), ('spare', 3.2229682038498084), ('restore', 3.182326219352462), ('overtake', 3.030323125907412), ('drive', 2.8928196021574775)]
+Erewhon
+[('baptize', 4.951211142293605), ('question', 3.951211142293605), ('treat', 3.103214235738655), ('ask', 2.7495772811239547), ('kill', 2.610174224458538), ('assure', 2.4657843151233636), ('tell', 2.0361000398801186), ('lead', 2.025211723737382), ('call', 1.4657843151233634), ('understand', 1.1438562202360012)]
+The American
+[('admonish', 4.48364055469273), ('motion', 3.8986780539715737), ('haul', 3.8986780539715737), ('inform', 3.676285632635126), ('admit', 3.63564364813778), ('respect', 3.4836405546927303), ('heed', 3.4836405546927303), ('remind', 3.3841048811418157), ('annoy', 3.261248133356282), ('enable', 3.261248133356282)]
+Dorian Gray
+[('reproach', 4.155425431747197), ('enrage', 4.155425431747197), ('curse', 3.570462931026041), ('annoy', 3.1554254317471973), ('face', 2.833497336859835), ('hat', 2.7403879324683533), ('stir', 2.652925091218014), ('trouble', 2.570462931026041), ('remind', 2.570462931026041), ('watch', 2.527394209134155)]
+Tess of the DUrbervilles
+[('arrest', 4.6550773171397655), ('benefit', 4.6550773171397655), ('awaken', 4.6550773171397655), ('enable', 4.070114816418609), ('grasp', 4.070114816418609), ('permit', 3.6550773171397655), ('refuse', 3.333149222252403), ('kill', 3.2627598943610048), ('trouble', 2.918111722973559), ('accompany', 2.889542570776788)]
+The Secret Garden
+[('marry', 4.229433406717022), ('bewitch', 4.229433406717022), ('scold', 4.229433406717022), ('startle', 3.8143959074381777), ('kill', 3.6444709059958655), ('meet', 2.9075053118296594), ('lead', 2.8143959074381777), ('trust', 2.6444709059958655), ('save', 2.6444709059958655), ('praise', 2.6444709059958655)]
+Portrait of the Artist
+[('chill', 3.7721090459652906), ('thrill', 3.7721090459652906), ('shock', 3.7721090459652906), ('counsel', 3.7721090459652906), ('repel', 3.7721090459652906), ('please', 3.7721090459652906), ('enfold', 3.7721090459652906), ('shoulder', 3.3570715466864467), ('pain', 3.3570715466864467), ('elude', 3.3570715466864467)]
+The Black Moth
+[('endear', 3.95943549435882), ('reward', 3.95943549435882), ('beckon', 3.95943549435882), ('hail', 3.544397995079976), ('judge', 3.3744729936376636), ('characterise', 3.3744729936376636), ('tax', 3.3744729936376636), ('question', 3.3744729936376636), ('cut', 3.3744729936376636), ('regard', 3.3744729936376636)]
+Orlando
+[('bite', 4.698576492981055), ('quiet', 4.698576492981055), ('hurt', 4.698576492981055), ('bethink', 4.505931415038659), ('bid', 4.113613992259899), ('fail', 4.113613992259899), ('greet', 4.113613992259899), ('disturb', 3.3766483980936925), ('stop', 3.3766483980936925), ('pull', 3.1136139922598987)]
+Blood Meridian
+[('ship', 4.373106818812925), ('enshadowe', 4.373106818812925), ('hit', 3.3731068188129254), ('ignore', 3.3731068188129254), ('warn', 3.051178723925563), ('wake', 2.7881443180917693), ('bury', 2.7881443180917693), ('face', 2.7881443180917693), ('tell', 2.4382018470348106), ('ask', 2.3027174909215273)]
+
+--- (e)(iii) Verbs with object 'her' (by PMI) ---
+Sense and Sensibility
+[('deter', 3.9633339952738007), ('preserve', 3.6414059003864385), ('teach', 3.548296495994957), ('amuse', 3.3783714945526446), ('accompany', 3.2263684011075946), ('oblige', 3.0888648773576595), ('induce', 2.9633339952738007), ('disturb', 2.9633339952738007), ('divide', 2.9633339952738007), ('blind', 2.9633339952738007)]
+North and South
+[('oppress', 4.5068445611120795), ('guard', 4.5068445611120795), ('stab', 4.5068445611120795), ('overtake', 4.5068445611120795), ('amuse', 4.091807061833236), ('pity', 3.921882060390923), ('greet', 3.506844561112079), ('restore', 3.506844561112079), ('hurt', 3.3369195596697665), ('hate', 3.284452139775631)]
+A Tale of Two Cities
+[('hurry', 5.0989498450995505), ('cheer', 5.0989498450995505), ('calm', 5.0989498450995505), ('besought', 5.0989498450995505), ('embrace', 3.961446321349616), ('imagine', 3.7770217502121883), ('fold', 3.7770217502121883), ('bestow', 3.5139873443783944), ('lift', 3.011487003849211), ('love', 2.575387889042538)]
+Erewhon
+[('cover', 5.37467726364303), ('love', 3.9152456450057325), ('assure', 3.5673223415854256), ('tell', 2.9152456450057325), ('ask', 2.851115307586017), ('get', 1.3085880731852575), ('take', 0.5417872494782883)]
+The American
+[('command', 4.179066026555636), ('shoot', 4.027062933110586), ('hate', 4.027062933110586), ('bully', 3.764028527276792), ('forgive', 3.6644928537258776), ('seize', 3.4421004323894295), ('hurt', 3.1790660265556356), ('stop', 3.0859566221641543), ('admire', 2.98642094861324), ('fetch', 2.956673605219188)]
+Dorian Gray
+[('kiss', 3.597647760352271), ('love', 3.247150513268138), ('marry', 2.597647760352271), ('watch', 2.510184919101932), ('touch', 2.275719665464909), ('know', 1.8972080422111794), ('find', 1.825058256455344), ('see', 1.6716483417960484), ('tell', 0.8736212218935634), ('ask', 0.5532536409938181)]
+Tess of the DUrbervilles
+[('advise', 3.899458039641871), ('defend', 3.899458039641871), ('greet', 3.899458039641871), ('request', 3.899458039641871), ('praiseth', 3.899458039641871), ('conduct', 3.4844205403630273), ('favour', 3.4844205403630273), ('fail', 3.3144955389207147), ('reassure', 3.3144955389207147), ('reject', 3.3144955389207147)]
+The Secret Garden
+[('follow', 3.7460470559280017), ('dislike', 3.620516173844143), ('miss', 3.620516173844143), ('attract', 3.398123752507695), ('lead', 3.205478674565299), ('kiss', 3.035553673122987), ('slap', 3.035553673122987), ('touch', 2.505038956424207), ('watch', 2.2184177302727974), ('pull', 2.035553673122987)]
+Portrait of the Artist
+[('kiss', 4.53502011342214), ('like', 4.297980916121292), ('see', 2.4943781289247946), ('leave', 2.4720103158963402), ('ask', 1.4720103158963402)]
+The Black Moth
+[('alarm', 4.544397995079976), ('surprise', 4.129360495801133), ('persecute', 3.95943549435882), ('annoy', 3.95943549435882), ('adore', 3.544397995079976), ('prevent', 3.544397995079976), ('conduct', 3.2224699001926136), ('relieve', 3.2224699001926136), ('guide', 3.2224699001926136), ('force', 3.0589711679097347)]
+Orlando
+[('inform', 4.595816918555854), ('force', 4.180779419277011), ('rebuke', 4.010854417834698), ('remind', 3.9177450134432164), ('invite', 3.595816918555854), ('forgive', 3.595816918555854), ('fancy', 3.2738888236684915), ('chase', 3.010854417834698), ('follow', 2.9177450134432164), ('hand', 2.721347800639713)]
+Blood Meridian
+[('ask', 4.395826895313009), ('tell', 3.765776505063315), ('leave', 2.6796198613136), ('watch', 1.6282729813133798), ('take', 0.7059952767378977)]
