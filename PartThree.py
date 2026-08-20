@@ -81,8 +81,8 @@ EXAMPLE_CHARS = 600        # truncate example speeches to keep prompt compact
 
 def build_few_shot_prompt(train, per_class=FEW_SHOT_PER_CLASS):
     """Build the few-shot system prompt: the zero-shot instruction plus a balanced
-    set of labelled training examples, one speech per party, so the model sees an
-    example of every label (including the rare SNP/Lib Dem). Excerpts are truncated."""
+    set of labelled training examples, `per_class` speeches per party, so the model
+    sees examples of every label (including rare SNP/Lib Dem). Excerpts are truncated."""
 
     blocks = [ZERO_SHOT_SYSTEM, "\nHere are some labelled examples:"]
     for party in PARTIES:
