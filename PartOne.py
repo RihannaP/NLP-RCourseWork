@@ -90,7 +90,16 @@ def read_novels(path=Path.cwd() / "texts" / "novels"):
 def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
     """Parses the text of a DataFrame using spaCy, stores the parsed docs as a column and writes 
     the resulting  DataFrame to a pickle file"""
-    pass
+    
+    df = df.copy()
+    # Run each text through spaCy.
+    df["parsed"] = list(nlp.pipe(df["text"], disable=["ner"])) #disabling NER, makes parsing faster
+
+    # (d)(ii): serialise the whole df (Doc objects included) to a pickle file.
+    store_path.mkdir(parents=True, exist_ok=True)
+    df.to_pickle(store_path / out_name)
+
+    return df   # (d)(iii)
 
 
 def nltk_ttr(text):
@@ -135,20 +144,24 @@ if __name__ == "__main__":
     print(path)
     df = read_novels(path) # this line will fail until you have completed the read_novels function above.
     print(df.head())
-    print(df[["title", "author", "year"]])
-    print("shape:", df.shape)
+    # print(df[["title", "author", "year"]])
+    # print("shape:", df.shape)
     
 
-    print("\n--- Type-Token Ratio ---")
-    for title, ttr in get_ttrs(df).items():
-        print(f"{ttr:.4f}  {title}")
+    # print("\n--- Type-Token Ratio ---")
+    # for title, ttr in get_ttrs(df).items():
+    #     print(f"{ttr:.4f}  {title}")
 
-    print("\n--- Flesch-Kincaid Grade Level ---")
-    for title, score in get_fks(df).items():
-        print(f"{score:6.2f}  {title}")
-    # parse(df)
-    # print(df.head())
+    # print("\n--- Flesch-Kincaid Grade Level ---")
+    # for title, score in get_fks(df).items():
+    #     print(f"{score:6.2f}  {title}")
+    parse(df)
+    df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle")
+    print("\n--- Parsed dataframe ---")
+    print(df.head())
+    doc = df.loc[0, "parsed"] #quick check with first 14 tikends of first novel
+    print([(t.text, t.pos_, t.dep_) for t in doc[:15]])
     # print(get_ttrs(df))
     # print(get_fks(df))
-    # df = pd.read_pickle(Path.cwd() / "pickles" /"name.pickle")
+    
     # call functions for part (e) here.
