@@ -133,6 +133,48 @@ Why these choices:
   the reported macro-F1 stable.
 """
 
+ANSWER_3D = """
+========================================
+3(d) - Comparison of zero-shot and few-shot
+========================================
+Which performed better?
+Few-shot performed best, but only after tuning. With two examples per party it
+reached macro-F1 0.496, above zero-shot (0.428). My first few-shot attempt, with
+one example per party, was actually worse (0.360) so more examples, not few-shot
+by itself, was what helped.
+
+How I optimised the prompts.
+- Same instruction in both: output exactly one of the four party labels and nothing
+  else. With temperature 0 this gave clean single-word answers, so almost no parsing
+  was needed.
+- Examples (few-shot): balanced (equal per party, drawn only from the training split,
+  so every label is shown and there is no test leakage); increased from one to two per
+  class (the decisive change); truncated to 600 characters to keep the prompt compact.
+
+Discussion.
+This matches with the Week 7 lecture that we discussed on in-context learning: an 
+instruction-tuned model adapts from prompt examples with no weight updates. The effect
+is fragile for a small 3.8B model, too few examples hurt rather than helped. Both methods still score 0.00
+on the SNP: with only two SNP speeches in the test set and heavy imbalance toward
+Conservative and Labour, the model defaults to the two major parties, echoing the
+minority-class weakness seen in Part Two. So the main limit here is data scarcity,
+not the prompting method. A larger model or more balanced data would likely widen the
+few-shot advantage and help the minority classes.
+"""
+
+RESULTS_3D = """
+Results summary (test set = 21 speeches, macro-F1):
+
+  Method                        | macro-F1
+  ------------------------------|---------
+  Zero-shot (3b)                |  0.428
+  Few-shot, 1 example / party   |  0.360
+  Few-shot, 2 examples / party  |  0.496   <-- best
+
+  Note: all methods score 0.00 on SNP (only 2 test speeches); the model
+  predicts only Conservative/Labour for the minority classes.
+"""
+
 if __name__ == "__main__":
     print(ANSWER_3A)
 
@@ -151,3 +193,6 @@ if __name__ == "__main__":
     print("---- exact few-shot prompt (system message) ----")
     print(few_shot_system)
     evaluate(test, lambda s: classify_few_shot(s, few_shot_system), "Few-shot (phi4-mini)")
+
+    print(ANSWER_3D)
+    print(RESULTS_3D)
