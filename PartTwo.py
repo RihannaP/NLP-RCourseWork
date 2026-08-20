@@ -5,7 +5,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import ComplementNB
 from sklearn.metrics import f1_score, classification_report
-
+import spacy
+_nlp = spacy.load("en_core_web_sm", disable=["parser", "ner"])
 
 def load_and_clean(path=Path.cwd() / "texts" / "hansard10000.csv"):
     #reads the Hansard CSV and applies the Part 2(a) cleaning steps
@@ -56,9 +57,49 @@ def vectorise_and_classify(df, vectorizer=None):
         print(classification_report(y_test, preds, zero_division=0))
 
 
+def custom_tokenizer(text):
+    """Custom tokenizer for 2(d).
+    Runs spaCy over the speech and returns lower-cased lemmas, keeping only
+    content words (nouns, verbs, adjectives, proper nouns) and dropping stopwords.
+    Restricting to content-word POS tags removes function words, punctuation and
+    numbers, and lemmatising collapses inflections (tax/taxes/taxing -> tax) - so
+    each feature captures a whole word family, concentrating signal into fewer,
+    more informative features."""
+    doc = _nlp(text)
+    return [
+        t.lemma_.lower()
+        for t in doc
+        if t.pos_ in {"NOUN", "VERB", "ADJ", "PROPN"} and not t.is_stop
+    ]
+
+
+def classify_best(df, vectorizer, label):
+    """Train both classifiers, print the classification report for the better one (by macro-F1)."""
+    X = vectorizer.fit_transform(df["speech"])
+    y = df["party"]
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, stratify=y, random_state=26
+    )
+    print(f"\n########## {label} — features used: {len(vectorizer.get_feature_names_out())} ##########")
+
+    best_name, best_f1, best_report = None, -1, None
+    for name, model in {"LogisticRegression": LogisticRegression(max_iter=1000),
+                        "ComplementNB": ComplementNB()}.items():
+        model.fit(X_train, y_train)
+        preds = model.predict(X_test)
+        macro = f1_score(y_test, preds, average="macro", zero_division=0)
+        print(f"{name}: macro-F1 = {macro:.4f}")
+        if macro > best_f1:
+            best_name, best_f1 = name, macro
+            best_report = classification_report(y_test, preds, zero_division=0)
+
+    print(f"\n>>> Best: {best_name} (macro-F1 = {best_f1:.4f})")
+    print(best_report)
+
 
 
 if __name__ == "__main__":
+    print("\n########## 2(a): Load and Clean Hansard CSV ##########")
     df = load_and_clean()
     print("shape:", df.shape)
     # print(df["party"].value_counts())
@@ -82,3 +123,10 @@ if __name__ == "__main__":
     )
     vectorise_and_classify(df, ngram_vec)
 
+    print("\n########## 2(d): custom spaCy tokenizer ##########")
+    custom_vec = TfidfVectorizer(
+        tokenizer=custom_tokenizer,
+        token_pattern=None,   # silence the warning when a custom tokenizer is given
+        max_features=2000
+    )
+    classify_best(df, custom_vec, "2(d) custom tokenizer")
