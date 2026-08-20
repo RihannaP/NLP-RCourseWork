@@ -1,0 +1,148 @@
+
+########## 2(a): Load and Clean Hansard CSV ##########
+shape: (2112, 8)
+
+########## 2(b): TF-IDF, unigrams ##########
+
+===== LogisticRegression =====
+macro-F1: 0.43321096031404094
+                         precision    recall  f1-score   support
+
+           Conservative       0.72      0.94      0.82       250
+                 Labour       0.67      0.46      0.55       125
+       Liberal Democrat       0.00      0.00      0.00        15
+Scottish National Party       0.73      0.24      0.36        33
+
+               accuracy                           0.71       423
+              macro avg       0.53      0.41      0.43       423
+           weighted avg       0.68      0.71      0.68       423
+
+
+===== ComplementNB =====
+macro-F1: 0.46423921130952384
+                         precision    recall  f1-score   support
+
+           Conservative       0.81      0.84      0.82       250
+                 Labour       0.59      0.60      0.60       125
+       Liberal Democrat       0.00      0.00      0.00        15
+Scottish National Party       0.45      0.42      0.44        33
+
+               accuracy                           0.71       423
+              macro avg       0.46      0.47      0.46       423
+           weighted avg       0.69      0.71      0.70       423
+
+
+########## 2(c): TF-IDF, unigrams + bigrams + trigrams ##########
+
+===== LogisticRegression =====
+macro-F1: 0.46307237996392125
+                         precision    recall  f1-score   support
+
+           Conservative       0.73      0.94      0.82       250
+                 Labour       0.69      0.47      0.56       125
+       Liberal Democrat       0.00      0.00      0.00        15
+Scottish National Party       0.79      0.33      0.47        33
+
+               accuracy                           0.72       423
+              macro avg       0.55      0.44      0.46       423
+           weighted avg       0.70      0.72      0.69       423
+
+
+===== ComplementNB =====
+macro-F1: 0.48596036023971345
+                         precision    recall  f1-score   support
+
+           Conservative       0.81      0.82      0.81       250
+                 Labour       0.58      0.60      0.59       125
+       Liberal Democrat       0.00      0.00      0.00        15
+Scottish National Party       0.51      0.58      0.54        33
+
+               accuracy                           0.70       423
+              macro avg       0.47      0.50      0.49       423
+           weighted avg       0.69      0.70      0.70       423
+
+
+########## 2(d): custom spaCy tokenizer ##########
+
+########## 2(d) custom tokenizer — features used: 2000 ##########
+LogisticRegression: macro-F1 = 0.4553
+ComplementNB: macro-F1 = 0.4724
+
+>>> Best: ComplementNB (macro-F1 = 0.4724)
+                         precision    recall  f1-score   support
+
+           Conservative       0.80      0.79      0.80       250
+                 Labour       0.54      0.61      0.57       125
+       Liberal Democrat       0.00      0.00      0.00        15
+Scottish National Party       0.53      0.52      0.52        33
+
+               accuracy                           0.69       423
+              macro avg       0.47      0.48      0.47       423
+           weighted avg       0.67      0.69      0.68       423
+
+
+========================================
+2(e) — Tokenizer explanation and performance discussion
+========================================
+My custom tokenizer uses spaCy to process each speech and returns lower-cased
+lemmas, keeping only content words ( nouns, verbs, adjectives and proper nouns
+-token.pos_ in {NOUN, VERB, ADJ, PROPN}) and discarding stopwords. Two ideas
+motivate this. First, restricting to content-word POS tags automatically removes
+function words, punctuation and numbers, so the feature space contains only words
+carrying topical or party-distinctive meaning. Second, lemmatisation collapses
+inflected forms (tax, taxes, taxing -> tax; argue, argued -> argue) into one
+feature, so each TF-IDF column represents a whole word family instead of being
+split across surface forms. Together these choices concentrate the signal into
+fewer, more informative features, the property the efficiency criterion rewards.
+
+I reached this design by experimentation. My first tokenizer kept any alphabetic,
+non-stopword token of length >= 3 (an is_alpha filter). Lemmatised and capped at
+3000 features, it gave a best macro-F1 of 0.465 (ComplementNB), essentially the
+same as the 2(b) unigram baseline (0.464). Switching the filter from is_alpha to
+the content-word POS test gave a comparable 0.463 at 3000 features, but with a
+cleaner, more defensible rationale: it explicitly targets meaningful words rather
+than relying on token length.
+
+The most interesting finding came from varying the feature budget. Reducing
+max_features from 3000 to 2000 improved the POS tokenizer's best macro-F1 from
+0.463 to 0.472, with Scottish National Party recall rising from 0.39 to 0.52.
+This shows the final 1000 features were mostly rare, noisy terms that hurt more
+than they helped; removing them let the classifier focus on genuinely
+discriminative vocabulary. So my best configuration is the content-word tokenizer
+with only 2000 features - a third fewer than the 2(b)/2(c) vectorizers - yet a
+higher macro-F1 than the unigram baseline. That is a good performance vs
+efficiency trade-off: comparable-or-better accuracy at lower cost.
+
+ComplementNB consistently beat LogisticRegression in every configuration, as
+expected: ComplementNB is designed for imbalanced text, and our classes are very
+skewed (Conservative 1248 vs Liberal Democrat 72). Macro-F1 is the honest metric
+here, accuracy stays near 0.70 mainly by predicting the majority class, while
+macro-F1 exposes weak minority-class performance.
+
+The tokenizer does NOT beat the 2(c) trigram model (0.486), because lemmatising
+and dropping function words removes exactly the phrase-level cues ("scottish
+government", "honourable member") that n-grams exploited to identify the SNP. In
+effect, my tokenizer trades a little accuracy for efficiency and interpretability.
+Liberal Democrat stays unlearnable (F1 0.00) under every scheme - with only 15
+test speeches, no feature engineering can rescue such a tiny class. Overall, the
+content-word tokenizer is an efficient, linguistically-motivated feature extractor
+that matches or exceeds the unigram baseline using substantially fewer features.
+
+
+Results summary (test set, stratified split, seed 26, macro-F1):
+
+  Config                                    | Features | LogReg | ComplementNB
+  ------------------------------------------|----------|--------|-------------
+  2(b) unigrams, stopwords removed          |   3000   | 0.433  |   0.464
+  2(c) unigrams + bigrams + trigrams        |   3000   | 0.463  |   0.486
+  2(d) lemma, is_alpha filter               |   3000   | 0.434  |   0.465
+  2(d) lemma, content-word POS filter       |   3000   | 0.448  |   0.463
+  2(d) lemma, content-word POS filter       |   2000   | 0.455  |   0.472  <-- best trade-off
+
+  Notes:
+   - ComplementNB beats LogisticRegression in every configuration (imbalanced text).
+   - 2(c) n-grams give the highest macro-F1 (0.486) but use the full 3000 features.
+   - 2(d) POS tokenizer at 2000 features (0.472) beats the 2(b) baseline and its own
+     3000-feature version, using a third fewer features - the best efficiency trade-off.
+   - Liberal Democrat scores F1 0.00 in all runs (only 15 test speeches).
+

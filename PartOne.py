@@ -240,4 +240,6 @@ if __name__ == "__main__":
     subject_verbs_for_object(df, "her")
 
 
-#I r
+#I observe : 'her' tends to attract relational verbs (kiss, love, marry) while 'him'
+# attracts a broader/more physical range; Blood Meridian yields very few 'her' verbs,
+# reflecting its almost womanless narrative.
