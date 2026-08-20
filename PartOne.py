@@ -16,13 +16,24 @@ def fk_level(text, d):
     Requires a dictionary of syllables per word.
 
     Args:
-        text (str): The text to analyze.
-        d (dict): A dictionary of syllables per word.
+    text (str): The text to analyze.
+    d (dict): A dictionary of syllables per word.
 
     Returns:
-        float: The Flesch-Kincaid Grade Level of the text. (higher grade is more difficult)
+    float: The Flesch-Kincaid Grade Level of the text. (higher grade is more difficult)
     """
-    pass
+    # FK Grade Level = 0.39*(words/sentences) + 11.8*(syllables/words) - 15.59
+    sentences = nltk.sent_tokenize(text)
+    words = [w for w in nltk.word_tokenize(text)
+             if not all(ch in string.punctuation for ch in w)]
+
+    n_sentences = len(sentences)
+    n_words = len(words)
+    if n_sentences == 0 or n_words == 0:
+        return 0.0
+
+    n_syllables = sum(count_syl(w, d) for w in words)
+    return 0.39 * (n_words / n_sentences) + 11.8 * (n_syllables / n_words) - 15.59
 
 
 def count_syl(word, d):
@@ -35,8 +46,24 @@ def count_syl(word, d):
 
     Returns:
         int: The number of syllables in the word.
+        
     """
-    pass
+    word = word.lower()
+    if word in d:
+        # in the CMU dict, every phoneme ending in a stress digit (0/1/2) is a vowel
+        # sound = one syllable. Count them in the first pronunciation variant.
+        return len([ph for ph in d[word][0] if ph[-1].isdigit()])
+
+    # fallback for words not in the dictionary: count runs of consecutive vowels.
+    vowels = "aeiouy"
+    count = 0
+    prev_was_vowel = False
+    for ch in word:
+        is_vowel = ch in vowels
+        if is_vowel and not prev_was_vowel:
+            count += 1
+        prev_was_vowel = is_vowel
+    return max(1, count)   # every word has at least one syllable
 
 
 def read_novels(path=Path.cwd() / "texts" / "novels"):
@@ -115,6 +142,10 @@ if __name__ == "__main__":
     print("\n--- Type-Token Ratio ---")
     for title, ttr in get_ttrs(df).items():
         print(f"{ttr:.4f}  {title}")
+
+    print("\n--- Flesch-Kincaid Grade Level ---")
+    for title, score in get_fks(df).items():
+        print(f"{score:6.2f}  {title}")
     # parse(df)
     # print(df.head())
     # print(get_ttrs(df))
