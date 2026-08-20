@@ -1,5 +1,10 @@
 import pandas as pd
 from pathlib import Path
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import ComplementNB
+from sklearn.metrics import f1_score, classification_report
 
 
 def load_and_clean(path=Path.cwd() / "texts" / "hansard10000.csv"):
@@ -22,8 +27,47 @@ def load_and_clean(path=Path.cwd() / "texts" / "hansard10000.csv"):
 
     return df
 
+    #  2(b) discussion
+    # Both models reach ~0.71 accuracy but low macro-F1 (LogReg ~0.43, ComplementNB
+    # ~0.46). Heavy class imbalance explains the gap: Conservative dominates, so
+    # accuracy stays high while macro-F1 (equal weight per party) exposes weak results
+    # on small classes. Liberal Democrat (15 test samples) is never predicted -> F1
+    # 0.00 (hence zero_division=0). ComplementNB spreads predictions more evenly and
+    # edges ahead, as expected for imbalanced text. Macro-F1 is the more honest metric.
+
+def vectorise_and_classify(df, vectorizer=None):
+    """Vectorises speeches with TF-IDF, splits train/test, trains two classifiers,
+    and prints macro-F1 + classification report for each on the test set."""
+    if vectorizer is None:
+        # default params, but drop English stopwords and cap at 3000 features
+        vectorizer = TfidfVectorizer(stop_words="english", max_features=3000)
+
+    X = vectorizer.fit_transform(df["speech"])
+    y = df["party"]
+
+    # stratified split preserves the party proportions in train and test
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, stratify=y, random_state=26
+    )
+
+    models = {
+        "LogisticRegression": LogisticRegression(max_iter=1000),
+        "ComplementNB": ComplementNB(),
+    }
+    for name, model in models.items():
+        model.fit(X_train, y_train)
+        preds = model.predict(X_test)
+        print(f"\n===== {name} =====")
+        #added , zero_division=0 to remove warnings
+        print("macro-F1:", f1_score(y_test, preds, average="macro", zero_division=0))
+        print(classification_report(y_test, preds, zero_division=0))
+
+
+
 
 if __name__ == "__main__":
     df = load_and_clean()
     print("shape:", df.shape)
-    print(df["party"].value_counts())
+    # print(df["party"].value_counts())
+    print("\n########## 2(b): TF-IDF, unigrams ##########")
+    vectorise_and_classify(df)
