@@ -27,13 +27,6 @@ def load_and_clean(path=Path.cwd() / "texts" / "hansard10000.csv"):
 
     return df
 
-    #  2(b) discussion
-    # Both models reach ~0.71 accuracy but low macro-F1 (LogReg ~0.43, ComplementNB
-    # ~0.46). Heavy class imbalance explains the gap: Conservative dominates, so
-    # accuracy stays high while macro-F1 (equal weight per party) exposes weak results
-    # on small classes. Liberal Democrat (15 test samples) is never predicted -> F1
-    # 0.00 (hence zero_division=0). ComplementNB spreads predictions more evenly and
-    # edges ahead, as expected for imbalanced text. Macro-F1 is the more honest metric.
 
 def vectorise_and_classify(df, vectorizer=None):
     """Vectorises speeches with TF-IDF, splits train/test, trains two classifiers,
@@ -70,4 +63,22 @@ if __name__ == "__main__":
     print("shape:", df.shape)
     # print(df["party"].value_counts())
     print("\n########## 2(b): TF-IDF, unigrams ##########")
+    #2(b) discussion 
+    # Both models reach ~0.71 accuracy but low macro-F1 (LogReg ~0.43, ComplementNB
+    # ~0.46). Heavy class imbalance explains the gap: Conservative dominates, so
+    # accuracy stays high while macro-F1 (equal weight per party) exposes weak results on small classes. Liberal Democrat (15 test samples) is never predicted -> F1 0.00 (hence zero_division=0). ComplementNB spreads predictions more evenly and edges ahead, as expected for imbalanced text. Macro-F1 is the more honest metric.
     vectorise_and_classify(df)
+
+    print("\n########## 2(c): TF-IDF, unigrams + bigrams + trigrams ##########")
+    #2(c) discussion
+    # Adding bigrams/trigrams (still 3000 features) lifts macro-F1 for both models
+    # (LogReg 0.43->0.46, ComplementNB 0.46->0.49), driven almost entirely by better
+    # SNP recall - its party-specific phrases only appear as n-grams. Majority classes
+    # are unchanged and Liberal Democrat stays at 0.00 (too few samples).
+    ngram_vec = TfidfVectorizer(
+        stop_words="english",
+        max_features=3000,
+        ngram_range=(1, 3),   # unigrams, bigrams and trigrams
+    )
+    vectorise_and_classify(df, ngram_vec)
+
