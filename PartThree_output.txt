@@ -1,0 +1,148 @@
+
+========================================
+3(a) - Model, access route, and generation parameters
+========================================
+Model:        Phi-4-mini-instruct (Ollama tag 'phi4-mini'), a 3.8B-parameter
+              open-weight, instruction-tuned model from Microsoft, running at
+              Q4_K_M quantisation.
+Access route: Ollama, running locally on an Apple M5 Pro (Metal-accelerated).
+Parameters:   temperature = 0 (deterministic / greedy decoding).
+
+Why these choices:
+- Instruction-tuned model: as covered in the Week 7 lecture, a base model only
+  performs text completion and will not reliably follow a task instruction, so a
+  party-classification task requires an instruction-tuned model. Phi-4-mini-instruct
+  is the model we used in the Week 6 lab (query-test.py).
+- Open-weight and local: Phi-4-mini is open-weight and small enough to run locally,
+  following the Lab 6 guidance to match model size to available hardware. Running it
+  locally through Ollama also means no speech data leaves the machine.
+- Ollama route: I first tried the HuggingFace transformers pipeline (the Lab 6
+  approach), but the torch/accelerate stack segfaulted on this machine's Python 3.14
+  while loading the weights. Ollama runs the same model through its own Metal engine,
+  avoiding that stack entirely. The brief explicitly permits Ollama.
+- temperature = 0: classification should be deterministic and reproducible, so I use
+  greedy decoding rather than sampling. This removes run-to-run variation and makes
+  the reported macro-F1 stable.
+
+cleaned shape: (103, 8)
+train/test sizes: 82 21
+
+########## 3(b): ZERO-SHOT ##########
+---- exact zero-shot prompt (system message) ----
+You are a political analyst. You are given an excerpt from a UK parliamentary speech. Classify which party the speaker belongs to. Answer with EXACTLY ONE of these labels and nothing else:
+Conservative
+Labour
+Scottish National Party
+Liberal Democrat
+
+===== Zero-shot (phi4-mini) =====
+macro-F1: 0.42796248934356357
+                         precision    recall  f1-score   support
+
+           Conservative       0.62      0.56      0.59         9
+                 Labour       0.62      0.80      0.70        10
+Scottish National Party       0.00      0.00      0.00         2
+
+               accuracy                           0.62        21
+              macro avg       0.41      0.45      0.43        21
+           weighted avg       0.56      0.62      0.58        21
+
+
+########## 3(c): FEW-SHOT ##########
+---- exact few-shot prompt (system message) ----
+You are a political analyst. You are given an excerpt from a UK parliamentary speech. Classify which party the speaker belongs to. Answer with EXACTLY ONE of these labels and nothing else:
+Conservative
+Labour
+Scottish National Party
+Liberal Democrat
+
+Here are some labelled examples:
+
+Speech:
+The right hon. Gentleman puts it correctly. When I have spoken to businesses in Scotland, Wales and Northern Ireland, they have agreed with businesses in England. The main market for so many of these businesses is within the United Kingdom. We talk about global Britain, but we have to make sure that we have our internal market right. The opportunities for business, including those in Northern Ireland, are absolutely at the heart of this Bill, and I appreciate his intervention. 
+ Removing the powers that I have outlined would make it difficult for the Government to respond to businesses and the
+Party: Conservative
+
+Speech:
+May I just say that we always enjoy my right hon. Friend the Minister’s appearances before our Committee, and I would not wish to reduce those in number or diminish them in quality. I say in her defence that we are tired of Ministers being sent to us who have been set up to fail, because they have not been part of the decision-making process. It is not they who are accountable, but rather those who are in more senior positions in those Departments. To continue to treat Committees in such a way is, I am afraid to say — I have resisted saying it so far, although it says it in the report — contem
+Party: Conservative
+
+Speech:
+Can I also, at the beginning of this debate, express, I am afraid, my absolute shock and disgust, frankly? This statutory instrument was deemed so important that it was brought to the Floor of the House rather than a Committee. Frankly, I could have been there as well and given a cursory speech and been at home with my children. But, instead, I prepared a proper speech that is fitting of a debate on the Floor of this House on a statutory instrument that has wide-ranging — very wide-ranging — powers. 
+ The Minister and I do not usually stand opposite one another. We did have that pleasure this 
+Party: Labour
+
+Speech:
+I beg to move, That the Bill be now read the Third time. 
+ While technical, this Bill is relatively simple. I am conscious that a number of hon. Members are keen to ensure that their Bills are also heard, so I will keep my remarks as brief as possible, especially as the contents have been well covered in previous stages. 
+ Legal safeguarding duties do not apply to independent providers in the same way as they do for those educated at school or in sixth form or further education colleges. The Education and Training (Welfare of Children) Bill aims to ensure that all young people are protected by
+Party: Labour
+
+Speech:
+Here we are again, coming up to five years since that referendum in which England decided to take us out of the EU, and still those behind that hare-brained scheme cannot settle on what needs to be done. There has been a veritable catalogue of failures along the way, passing by the truly awful performances in negotiations, the collapse of exporting industries in the early part of this year — teething problems, the Minister said — and the truly appalling way in which EU citizens have been treated by this Tory Government. 
+ So here we are once again spending time on regulations to facilitate Bre
+Party: Scottish National Party
+
+Speech:
+Congratulations on your anniversary, Mr Speaker. 
+ We in the SNP are not unused to the Prime Minister scuttling out before our spokesperson gets to their feet, but the fact that he could not wait four minutes to listen to his predecessor was, I think, extremely unfortunate. Like her, I want to acknowledge the personal tragedies and loss of life caused by the pandemic and extend our condolences to everyone who has lost a loved one this year. 
+ I will be as brief as I can, because none of us wants to deny the 48 Tory Back Benchers lined up on the call list the opportunity to make their views kno
+Party: Scottish National Party
+
+Speech:
+I entirely agree. Dare I say it, but even the UK’s Prime Minister this week accepted that the isolate part of the test, trace and isolate system is not working. That is largely driven by the fact that people who have an economic need to continue to work will do so if the supports are not available, and that must be true in other parts of the world as well. 
+ As I was saying, the most affluent countries will inevitably benefit, in terms of vaccines, access to treatment, some form of recovery and a return to aspects of day-to-day life, which we so miss in this place and beyond. For the majority 
+Party: Liberal Democrat
+
+===== Few-shot (phi4-mini) =====
+macro-F1: 0.4961636828644502
+                         precision    recall  f1-score   support
+
+           Conservative       0.64      1.00      0.78         9
+                 Labour       0.86      0.60      0.71        10
+Scottish National Party       0.00      0.00      0.00         2
+
+               accuracy                           0.71        21
+              macro avg       0.50      0.53      0.50        21
+           weighted avg       0.68      0.71      0.67        21
+
+
+========================================
+3(d) - Comparison of zero-shot and few-shot
+========================================
+Which performed better?
+Few-shot performed best, but only after tuning. With two examples per party it
+reached macro-F1 0.496, above zero-shot (0.428). My first few-shot attempt, with
+one example per party, was actually worse (0.360) so more examples, not few-shot
+by itself, was what helped.
+
+How I optimised the prompts.
+- Same instruction in both: output exactly one of the four party labels and nothing
+  else. With temperature 0 this gave clean single-word answers, so almost no parsing
+  was needed.
+- Examples (few-shot): balanced (equal per party, drawn only from the training split,
+  so every label is shown and there is no test leakage); increased from one to two per
+  class (the decisive change); truncated to 600 characters to keep the prompt compact.
+
+Discussion.
+This matches with the Week 7 lecture that we discussed on in-context learning: an 
+instruction-tuned model adapts from prompt examples with no weight updates. The effect
+is fragile for a small 3.8B model, too few examples hurt rather than helped. Both methods still score 0.00
+on the SNP: with only two SNP speeches in the test set and heavy imbalance toward
+Conservative and Labour, the model defaults to the two major parties, echoing the
+minority-class weakness seen in Part Two. So the main limit here is data scarcity,
+not the prompting method. A larger model or more balanced data would likely widen the
+few-shot advantage and help the minority classes.
+
+
+Results summary (test set = 21 speeches, macro-F1):
+
+  Method                        | macro-F1
+  ------------------------------|---------
+  Zero-shot (3b)                |  0.428
+  Few-shot, 1 example / party   |  0.360
+  Few-shot, 2 examples / party  |  0.496   <-- best
+
+  Note: all methods score 0.00 on SNP (only 2 test speeches); the model
+  predicts only Conservative/Labour for the minority classes.
+

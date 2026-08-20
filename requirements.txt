@@ -3,3 +3,4 @@ spacy
 pandas
 numpy
 scikit-learn
+ollama
