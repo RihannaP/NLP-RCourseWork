@@ -101,8 +101,7 @@ ANSWER_2E = """
 2(e) — Tokenizer explanation and performance discussion
 ========================================
 My custom tokenizer uses spaCy to process each speech and returns lower-cased
-lemmas, keeping only content words ( nouns, verbs, adjectives and proper nouns
--token.pos_ in {NOUN, VERB, ADJ, PROPN}) and discarding stopwords. Two ideas
+lemmas, keeping only content words (nouns, verbs, adjectives and proper nouns, i.e. token.pos_ in {NOUN, VERB, ADJ, PROPN}) and discarding stopwords. Two ideas
 motivate this. First, restricting to content-word POS tags automatically removes
 function words, punctuation and numbers, so the feature space contains only words
 carrying topical or party-distinctive meaning. Second, lemmatisation collapses
@@ -197,4 +196,5 @@ if __name__ == "__main__":
     )
     classify_best(df, custom_vec, "2(d) custom tokenizer")
 
-    
+    print(ANSWER_2E)
+    print(RESULTS_2E)
