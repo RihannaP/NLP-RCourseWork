@@ -4,6 +4,8 @@ import nltk
 import spacy
 from pathlib import Path
 import string
+import math
+from collections import Counter
 
 
 nlp = spacy.load("en_core_web_sm")
@@ -133,6 +135,63 @@ def get_fks(df):
 
 #.. add functions for part (e) here
 
+def object_counts(doc):
+    #counter of syntactic direct objects (dep_ == 'dobj') in a parsed Doc, counted by lemma
+    objects = Counter()
+    for token in doc:
+        if token.dep_ == "dobj":
+            objects[token.lemma_.lower()] += 1
+    return objects
+
+
+def object_dobjs(df, top_n=10):
+    #(e)(i): prints each novel's title and its ten most common direct objects
+    for _, row in df.iterrows():
+        print(row["title"])
+        print(object_counts(row["parsed"]).most_common(top_n))
+
+
+def _verb_object_pairs(doc):
+    """every (verb_lemma, object_text) pair joined by a direct-object relation.
+    object is kept as surface text (lower-cased) so 'him'/'her' match directly
+    (spaCy would otherwise lemmatise 'him' -> 'he')."""
+    pairs = []
+    for token in doc:
+        if token.dep_ == "dobj" and token.head.pos_ == "VERB":
+            pairs.append((token.head.lemma_.lower(), token.text.lower()))
+    return pairs
+
+
+def pmi_verbs_for_object(doc, target_object, top_n=10, min_count=2):
+    """(e)(ii/iii): verbs most associated with target_object, ranked by PMI.
+    PMI(verb, obj) = log2( P(verb, obj) / (P(verb) * P(obj)) ),
+    estimated over all verb--direct-object pairs in the text."""
+    pairs = _verb_object_pairs(doc)
+    total = len(pairs)
+    if total == 0:
+        return []
+
+    verb_counts = Counter(v for v, o in pairs)
+    obj_counts = Counter(o for v, o in pairs)
+    pair_counts = Counter(pairs)
+
+    scores = {}
+    for (verb, obj), joint in pair_counts.items():
+        if obj != target_object or joint < min_count:
+            continue
+        # log2( (joint/total) / ((count(verb)/total) * (count(obj)/total)) )
+        scores[verb] = math.log2((joint * total) / (verb_counts[verb] * obj_counts[obj]))
+
+    return sorted(scores.items(), key=lambda kv: kv[1], reverse=True)[:top_n]
+
+
+def subject_verbs_for_object(df, target_object, top_n=10, min_count=2):
+    #prints each novel's title and its top verbs (by PMI) for a given object
+    for _, row in df.iterrows():
+        print(row["title"])
+        print(pmi_verbs_for_object(row["parsed"], target_object, top_n, min_count))
+
+
 
 
 if __name__ == "__main__":
@@ -144,24 +203,35 @@ if __name__ == "__main__":
     print(path)
     df = read_novels(path) # this line will fail until you have completed the read_novels function above.
     print(df.head())
-    # print(df[["title", "author", "year"]])
-    # print("shape:", df.shape)
+    print(df[["title", "author", "year"]])
+    print("shape:", df.shape)
     
 
-    # print("\n--- Type-Token Ratio ---")
-    # for title, ttr in get_ttrs(df).items():
-    #     print(f"{ttr:.4f}  {title}")
+    print("\n--- Type-Token Ratio ---")
+    for title, ttr in get_ttrs(df).items():
+        print(f"{ttr:.4f}  {title}")
 
-    # print("\n--- Flesch-Kincaid Grade Level ---")
-    # for title, score in get_fks(df).items():
-    #     print(f"{score:6.2f}  {title}")
+    print("\n--- Flesch-Kincaid Grade Level ---")
+    for title, score in get_fks(df).items():
+        print(f"{score:6.2f}  {title}")
+    
     parse(df)
     df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle")
     print("\n--- Parsed dataframe ---")
     print(df.head())
-    doc = df.loc[0, "parsed"] #quick check with first 14 tikends of first novel
+    #quick check with first 14 tikends of first novel
+    doc = df.loc[0, "parsed"] 
     print([(t.text, t.pos_, t.dep_) for t in doc[:15]])
-    # print(get_ttrs(df))
-    # print(get_fks(df))
     
     # call functions for part (e) here.
+    # (e)(i) ten most common direct objects per novel
+    print("\n--- (e)(i) Ten most common direct objects ---")
+    object_dobjs(df)
+
+    # (e)(ii) verbs most associated with the object 'him' (by PMI)
+    print("\n--- (e)(ii) Verbs with object 'him' (by PMI) ---")
+    subject_verbs_for_object(df, "him")
+
+    # (e)(iii) verbs most associated with the object 'her' (by PMI)
+    print("\n--- (e)(iii) Verbs with object 'her' (by PMI) ---")
+    subject_verbs_for_object(df, "her")
