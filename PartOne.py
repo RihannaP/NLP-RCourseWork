@@ -139,7 +139,8 @@ def object_counts(doc):
     #counter of syntactic direct objects (dep_ == 'dobj') in a parsed Doc, counted by lemma
     objects = Counter()
     for token in doc:
-        if token.dep_ == "dobj":
+        # is_alpha skips markup/OCR artifacts like '_' so only real word objects count
+        if token.dep_ == "dobj" and token.is_alpha:
             objects[token.lemma_.lower()] += 1
     return objects
 
@@ -157,7 +158,8 @@ def _verb_object_pairs(doc):
     (spaCy would otherwise lemmatise 'him' -> 'he')."""
     pairs = []
     for token in doc:
-        if token.dep_ == "dobj" and token.head.pos_ == "VERB":
+        if (token.dep_ == "dobj" and token.head.pos_ == "VERB"
+                and token.is_alpha and token.head.is_alpha):
             pairs.append((token.head.lemma_.lower(), token.text.lower()))
     return pairs
 
@@ -201,8 +203,8 @@ if __name__ == "__main__":
     nltk.download("punkt_tab")
     path = Path.cwd() / "texts" / "novels"
     print(path)
-    df = read_novels(path) # this line will fail until you have completed the read_novels function above.
-    print(df.head())
+    df = read_novels(path)
+    # print(df[["title", "author", "year"]].head())
     print(df[["title", "author", "year"]])
     print("shape:", df.shape)
     
@@ -218,7 +220,8 @@ if __name__ == "__main__":
     parse(df)
     df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle")
     print("\n--- Parsed dataframe ---")
-    print(df.head())
+    print("columns:", df.columns.tolist())
+    print(df[["title", "year"]].head())
     #quick check with first 14 tikends of first novel
     doc = df.loc[0, "parsed"] 
     print([(t.text, t.pos_, t.dep_) for t in doc[:15]])
@@ -235,3 +238,6 @@ if __name__ == "__main__":
     # (e)(iii) verbs most associated with the object 'her' (by PMI)
     print("\n--- (e)(iii) Verbs with object 'her' (by PMI) ---")
     subject_verbs_for_object(df, "her")
+
+
+#I r
